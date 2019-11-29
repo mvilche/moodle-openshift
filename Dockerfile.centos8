@@ -39,13 +39,13 @@ PATH=/opt/remi/$PHP_VERSION/root/usr/bin:/opt/remi/$PHP_VERSION/root/usr/sbin${P
 LD_LIBRARY_PATH=/opt/remi/$PHP_VERSION/root/usr/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}} \
 MANPATH=/opt/remi/$PHP_VERSION/root/usr/share/man:${MANPATH}
 
-COPY s2i/bin/ /usr/libexec/s2i
-
-COPY security.conf /etc/httpd/conf.d/security.conf
-
 WORKDIR /var/www/html
 
 RUN git clone --depth=1 -b $MOODLE_VERSION $MOODLE_REPO .
+
+COPY s2i/bin/ /usr/libexec/s2i
+
+COPY security.conf /etc/httpd/conf.d/security.conf
 
 RUN mkdir -p /opt/moodle_data /opt/moodle_config && usermod -u 1001 apache && usermod -aG 0 apache && rm -rf /etc/localtime /etc/httpd/conf.d/welcome.conf && touch /etc/localtime /etc/timezone && \
 mkdir -p /usr/share/composer_install && \

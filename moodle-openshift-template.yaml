@@ -111,10 +111,7 @@
               - bash
               - "-c"
               - |
-                echo "···································································································"
-                echo "---->  WAITFOR  ACTIVADO.."
                 until nc -z -v -w5 mysql 3306 &> /dev/null; do echo waiting for mysql; sleep 10; done;	
-                echo "···································································································"              
                 /usr/libexec/s2i/initdb        
           containers:
             - env:
