@@ -17,6 +17,62 @@
   objects:
 
 
+
+
+  - apiVersion: v1
+    data:
+      config.php: |-
+        <?php  // Moodle configuration file
+
+        unset($CFG);
+        global $CFG;
+        $CFG = new stdClass();
+
+        $CFG->dbtype    = 'mysqli';
+        $CFG->dblibrary = 'native';
+        $CFG->dbhost    = 'mysql';
+        $CFG->dbname    = 'moodle';
+        $CFG->dbuser    = 'mysql';
+        $CFG->dbpass    = 'mysql';
+        $CFG->prefix    = 'mdl_';
+        $CFG->dboptions = array (
+          'dbpersist' => 0,
+          'dbport' => 3306,
+          'dbsocket' => '',
+          'dbcollation' => 'utf8mb4_general_ci',
+        );
+
+        $CFG->wwwroot   = 'http://localhost:8080';
+        $CFG->dataroot  = '/opt/moodle_data';
+        $CFG->admin     = 'admin';
+
+        $CFG->directorypermissions = 0777;
+
+        require_once(__DIR__ . '/lib/setup.php');
+
+        // There is no php closing tag in this file,
+        // it is intentional because it prevents trailing whitespace problems!
+    kind: ConfigMap
+    metadata:
+      name: moodle-config
+
+
+
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      finalizers:
+      - kubernetes.io/pvc-protection
+      name: moodle-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Gi
+
+
+
   - apiVersion: v1
     kind: DeploymentConfig
     metadata:
@@ -48,12 +104,23 @@
             app: moodle
             deploymentconfig: moodle
         spec:
+          initContainers:
+            - name: init-database
+              env:
+                - name: WAITFOR_HOST
+                  value: mysql
+                - name: WAITFOR_PORT
+                  value: 3006
+                - name: TIMEZONE
+                  value: America/Montevideo
+              image: moodle:latest
+              command: ['bash', '-c', '/usr/libexec/s2i/initdb']        
           containers:
             - env:
                 - name: WAITFOR_HOST
-                  value:
+                  value: mysql
                 - name: WAITFOR_PORT
-                  value:
+                  value: 3006
                 - name: TIMEZONE
                   value: America/Montevideo
               image: "moodle:latest"
@@ -86,10 +153,23 @@
                   memory: 512Mi
               terminationMessagePath: /dev/termination-log
               terminationMessagePolicy: File
+              volumeMounts:
+                - name: moodle-config
+                  mountPath: /opt/moodle_config    
+                - name: moodle-data
+                  mountPath: /opt/moodle_data
+                  subPath: moodle-data
           dnsPolicy: ClusterFirst
           restartPolicy: Always
           schedulerName: default-scheduler
           terminationGracePeriodSeconds: 30
+          volumes:
+            - configMap:
+                name: moodle-config
+              name: moodle-config
+            - name: moodle-data
+              persistentVolumeClaim:
+                claimName: moodle-data                        
       test: false
       triggers:
         - type: ConfigChange
@@ -188,3 +268,114 @@
 
 ########## FIN php
 
+### COMIENZO mysql
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      labels:
+        app: moodle
+      name: mysql
+    spec:
+      replicas: 1
+      selector:
+        app: moodle
+        deploymentconfig: mysql
+      strategy:
+        activeDeadlineSeconds: 21600
+        resources: {}
+        type: Recreate
+      template:
+        metadata:
+          labels:
+            app: moodle
+            deploymentconfig: mysql
+        spec:
+          containers:
+            - env:
+                - name: MYSQL_ROOT_PASSWORD
+                  value: moodle
+                - name: MYSQL_USER
+                  value: moodle
+                - name: MYSQL_PASSWORD
+                  value: moodle                
+                - name: MYSQL_DATABASE
+                  value: moodle
+              image: mysql:57
+              imagePullPolicy: Always
+              name: mysql
+              ports:
+                - containerPort: 3306
+                  protocol: TCP
+              readinessProbe:
+                exec:
+                  command:
+                  - /bin/sh
+                  - -i
+                  - -c
+                  - mysql -h 127.0.0.1 -u $MYSQL_USER -p$MYSQL_PASSWORD -D $MYSQL_DATABASE -e 'SELECT 1'
+                failureThreshold: 3
+                initialDelaySeconds: 60
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 1
+              resources:
+                limits:
+                  memory: 512Mi
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+              volumeMounts:
+                - mountPath: /var/lib/mysql/data
+                  name: mysql
+                  subPath: mysql
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          schedulerName: default-scheduler
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+          volumes:
+            - name: mysql
+              persistentVolumeClaim:
+                claimName: moodle-data
+      test: false
+      triggers:
+        - type: ConfigChange
+        - imageChangeParams:
+            automatic: true
+            containerNames:
+              - mysql
+            from:
+              kind: ImageStreamTag
+              name: 'mysql:57'
+          type: ImageChange
+
+
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: moodle
+      name: mysql
+    spec:
+      ports:
+        - name: tcp
+          port: 3306
+          protocol: TCP
+          targetPort: 3306
+      selector:
+        app: moodle
+        deploymentconfig: mysql
+      sessionAffinity: None
+      type: ClusterIP
+
+
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+        name: mysql
+    spec:
+        tags:
+          - name: '57'
+            from:
+                kind: DockerImage
+                name: centos/mysql-57-centos7
