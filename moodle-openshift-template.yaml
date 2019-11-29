@@ -238,10 +238,6 @@
           kind: ImageStreamTag
           name: 'moodle:latest'
       postCommit: {}
-      resources:
-        limits:
-          cpu: 500m
-          memory: 1024Mi
       runPolicy: Serial
       source:
         git:
