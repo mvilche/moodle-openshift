@@ -31,39 +31,17 @@ if [ ! -z "$WAITFOR_HOST" ] && [ ! -z "$WAITFOR_PORT" ] ; then
 fi
 
 
-DOCROOT=/var/www/html
+if [ -f "/opt/moodle_config/config.php" ]; then
 
-if [ -f "/opt/composer_env/env" ]; then
+cat /opt/moodle_config/config.php > /var/www/html/config.php 
 
-echo "----> CUSTOM ENV ENCONTRADO - UTILIZANDO.."
+else
 
-cat /opt/composer_env/env > $DOCROOT/.env
+	echo "---->  NO SE ENCONTRO config.php SALIENDO.."
+
+exit 1
 
 fi
-
-
-
-if [ "$MIGRATIONS" == 1 ]; then
-	echo "···································································································"
-	echo "----> MIGRACIONES AUTOMATICAS ACTIVADAS.."
-	
-	if [[ -f "$DOCROOT/artisan" ]]; then
-    
-	echo "----> ARTISAN ENCONTRADO!"
-    echo "----> EJECUTANDO MIGRACIONES..."
-	cd $DOCROOT
-	php artisan key:generate
-	php artisan migrate 
-	else
-	echo "----> NO SE ENCONTRO ARTISAN - NADA PARA MIGRAR"
-	fi
-	else
-    echo "----> CONTINUANDO SIN MIGRACIONES"
-	fi
-
-	echo "···································································································"
-	echo "---->  INICIANDO APP..."
-	echo "···································································································"
 
 rm -rf /var/run/httpd/*
 exec httpd -DFOREGROUND
