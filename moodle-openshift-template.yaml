@@ -106,15 +106,16 @@
         spec:
           initContainers:
             - name: init-database
-              env:
-                - name: WAITFOR_HOST
-                  value: mysql
-                - name: WAITFOR_PORT
-                  value: 3006
-                - name: TIMEZONE
-                  value: America/Montevideo
               image: moodle:latest
-              command: ['bash', '-c', '/usr/libexec/s2i/initdb']        
+              command:
+              - bash
+              - "-c"
+              - |
+                echo "···································································································"
+                echo "---->  WAITFOR  ACTIVADO.."
+                until nc -z -v -w5 mysql 3306 &> /dev/null; do echo waiting for mysql; sleep 10; done;	
+                echo "···································································································"              
+                /usr/libexec/s2i/initdb        
           containers:
             - env:
                 - name: WAITFOR_HOST
