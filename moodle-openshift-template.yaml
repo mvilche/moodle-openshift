@@ -243,7 +243,6 @@
           memory: 1024Mi
       runPolicy: Serial
       source:
-        contextDir: ${PHP_VERSION}
         git:
           ref: master
           uri: 'https://github.com/mvilche/moodle-openshift.git'
