@@ -410,10 +410,10 @@
 
 
   ################PARAMETROS
-    parameters:
-      - name: PUBLIC_DOMAIN
-        displayName: Dominio publico de acceso al Moodle
-        value: ''
-        required: true
+  parameters:
+    - name: PUBLIC_DOMAIN
+      displayName: Dominio publico de acceso al Moodle
+      value: ''
+      required: true
 
   ###############
