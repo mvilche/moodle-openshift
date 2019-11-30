@@ -13,6 +13,26 @@
         Php Application S2i Images
         Martin Fabrizzio Vilche.
         https://github.com/mvilche.
+      openshift.io/provider-display-name: "Martin Fabrizzio Vilche"
+      openshift.io/documentation-url: "https://github.com/mvilche/moodle-openshift.git"
+      openshift.io/support-url: "https://github.com/mvilche/moodle-openshift.git"
+  message: >-
+    Se ha creado de forma exitosa Moodle!!!!
+    Moodle iniciará en unos minutos, la inicialización de la base de datos puede durar hasta 5 minutos luego de que los servicios inicien.
+    
+    --------------------------------------------------------------
+    
+      Datos de acceso
+
+    Usuario: admin
+    Password: admin
+    Url: ${PUBLIC_DOMAIN}
+
+    IMPORTANTE: RECUERDE CAMBIAR LAS CREDENCIALES POR DEFECTO!!
+    
+    --------------------------------------------------------------
+    
+    Martin Fabrizzio Vilche        
 
   objects:
 
@@ -39,7 +59,7 @@
           'dbsocket' => '',
           'dbcollation' => 'utf8mb4_general_ci',
         );
-        $CFG->wwwroot   = 'http://localhost:8080';
+        $CFG->wwwroot   = '${PUBLIC_DOMAIN}';
         $CFG->dataroot  = '/opt/moodle_data';
         $CFG->admin     = 'admin';
         $CFG->directorypermissions = 0777;
@@ -107,8 +127,21 @@
               - bash
               - "-c"
               - |
-                until nc -z -v -w5 mysql 3306 &> /dev/null; do echo waiting for mysql; sleep 10; done;	
-                /usr/libexec/s2i/initdb
+                until nc -z -v -w5 mysql 3306 &> /dev/null; do echo waiting for mysql; sleep 10; done;
+                if [ -f "/opt/moodle_config/config.php" ]; then
+                cat /opt/moodle_config/config.php > /var/www/html/config.php
+                else
+                echo "---->  NO SE ENCONTRO config.php SALIENDO.."
+                exit 1
+                fi
+                if [ ! -d "/opt/moodle_data/dbinit" ]; then
+                php /var/www/html/admin/cli/install_database.php --agree-license --non-interactive --fullname=openshift --shortname=openshift --adminuser=admin --adminpass=admin --adminemail=admin@admin.com
+                mkdir -p /opt/moodle_data/dbinit
+                exit 0
+                else
+                echo "---->  MOODLE YA INICIALIZADO SALIENDO.."
+                exit 0
+                fi                
               volumeMounts:
                 - name: moodle-config
                   mountPath: /opt/moodle_config    
@@ -131,7 +164,7 @@
                   protocol: TCP
               livenessProbe:
                 failureThreshold: 3
-                initialDelaySeconds: 60
+                initialDelaySeconds: 10
                 periodSeconds: 20
                 successThreshold: 1
                 httpGet:
@@ -140,7 +173,7 @@
                 timeoutSeconds: 15
               readinessProbe:
                 failureThreshold: 3
-                initialDelaySeconds: 60
+                initialDelaySeconds: 10
                 periodSeconds: 20
                 successThreshold: 1
                 httpGet:
@@ -211,7 +244,7 @@
         app: moodle
       name: moodle
     spec:
-      host:
+      host: ${PUBLIC_DOMAIN}
       port:
         targetPort: http
       to:
@@ -374,3 +407,13 @@
             from:
                 kind: DockerImage
                 name: centos/mysql-57-centos7
+
+
+  ################PARAMETROS
+    parameters:
+      - name: PUBLIC_DOMAIN
+        displayName: Dominio publico de acceso al Moodle
+        value: ''
+        required: true
+
+  ###############
