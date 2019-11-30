@@ -59,7 +59,7 @@
           'dbsocket' => '',
           'dbcollation' => 'utf8mb4_general_ci',
         );
-        $CFG->wwwroot   = '${PUBLIC_DOMAIN}';
+        $CFG->wwwroot   = 'http://${PUBLIC_DOMAIN}';
         $CFG->dataroot  = '/opt/moodle_data';
         $CFG->admin     = 'admin';
         $CFG->directorypermissions = 0777;
