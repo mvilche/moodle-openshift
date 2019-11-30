@@ -22,13 +22,13 @@
     
     --------------------------------------------------------------
     
-      Datos de acceso
+    Datos de acceso
 
-    Usuario: admin
-    Password: admin
-    Url: ${PUBLIC_DOMAIN}
+    Usuario admin
+    Password admin
+    Url ${PUBLIC_DOMAIN}
 
-    IMPORTANTE: RECUERDE CAMBIAR LAS CREDENCIALES POR DEFECTO!!
+    IMPORTANTE RECUERDE CAMBIAR LAS CREDENCIALES POR DEFECTO!!
     
     --------------------------------------------------------------
     
@@ -128,20 +128,7 @@
               - "-c"
               - |
                 until nc -z -v -w5 mysql 3306 &> /dev/null; do echo waiting for mysql; sleep 10; done;
-                if [ -f "/opt/moodle_config/config.php" ]; then
-                cat /opt/moodle_config/config.php > /var/www/html/config.php
-                else
-                echo "---->  NO SE ENCONTRO config.php SALIENDO.."
-                exit 1
-                fi
-                if [ ! -d "/opt/moodle_data/dbinit" ]; then
-                php /var/www/html/admin/cli/install_database.php --agree-license --non-interactive --fullname=openshift --shortname=openshift --adminuser=admin --adminpass=admin --adminemail=admin@admin.com
-                mkdir -p /opt/moodle_data/dbinit
-                exit 0
-                else
-                echo "---->  MOODLE YA INICIALIZADO SALIENDO.."
-                exit 0
-                fi                
+                /usr/libexec/s2i/initdb
               volumeMounts:
                 - name: moodle-config
                   mountPath: /opt/moodle_config    
@@ -412,7 +399,7 @@
   ################PARAMETROS
   parameters:
     - name: PUBLIC_DOMAIN
-      displayName: Dominio publico de acceso al Moodle
+      displayName: Dominio publico de acceso al Moodle (Ingrese unicamente un nombre de dominio sin protocolo ni slash)
       value: ''
       required: true
 

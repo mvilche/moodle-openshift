@@ -9,16 +9,31 @@
 
 if [ -f "/opt/moodle_config/config.php" ]; then
 
-cat /opt/moodle_config/config.php > /var/www/html/config.php 
+cat /opt/moodle_config/config.php > /var/www/html/config.php
 
-php /var/www/html/admin/cli/install_database.php --agree-license --non-interactive --fullname=openshift --shortname=openshift --adminuser=admin --adminpass=admin --adminemail=admin@admin.com
+else
+
+echo "---->  NO SE ENCONTRO config.php SALIENDO.."
+
+exit 1
+
+fi
+
+if [ ! -d "/opt/moodle_data/dbinit" ]; then
+
+php /var/www/html/admin/cli/install_database.php --agree-license \
+--non-interactive --fullname=openshift --shortname=openshift \
+--adminuser=admin --adminpass=admin --adminemail=admin@admin.com
+
+mkdir -p /opt/moodle_data/dbinit
 
 exit 0
 
 else
 
-echo "---->  NO SE ENCONTRO config.php SALIENDO.."
-exit 1
+echo "---->  MOODLE YA INICIALIZADO SALIENDO.."
 
-fi
+exit 0
+
+fi    
 
