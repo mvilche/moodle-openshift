@@ -115,13 +115,6 @@
                 - name: moodle-data
                   mountPath: /opt/moodle_data
                   subPath: moodle-data
-          volumes:
-            - configMap:
-                name: moodle-config
-              name: moodle-config
-            - name: moodle-data
-              persistentVolumeClaim:
-                claimName: moodle-data
           containers:
             - env:
                 - name: WAITFOR_HOST
