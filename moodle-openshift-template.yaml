@@ -23,17 +23,15 @@
     data:
       config.php: |-
         <?php  // Moodle configuration file
-
         unset($CFG);
         global $CFG;
         $CFG = new stdClass();
-
         $CFG->dbtype    = 'mysqli';
         $CFG->dblibrary = 'native';
         $CFG->dbhost    = 'mysql';
         $CFG->dbname    = 'moodle';
-        $CFG->dbuser    = 'mysql';
-        $CFG->dbpass    = 'mysql';
+        $CFG->dbuser    = 'moodle';
+        $CFG->dbpass    = 'moodle';
         $CFG->prefix    = 'mdl_';
         $CFG->dboptions = array (
           'dbpersist' => 0,
@@ -41,15 +39,11 @@
           'dbsocket' => '',
           'dbcollation' => 'utf8mb4_general_ci',
         );
-
         $CFG->wwwroot   = 'http://localhost:8080';
         $CFG->dataroot  = '/opt/moodle_data';
         $CFG->admin     = 'admin';
-
         $CFG->directorypermissions = 0777;
-
         require_once(__DIR__ . '/lib/setup.php');
-
         // There is no php closing tag in this file,
         // it is intentional because it prevents trailing whitespace problems!
     kind: ConfigMap
@@ -103,8 +97,8 @@
           labels:
             app: moodle
             deploymentconfig: moodle
-            annotations:
-              alpha.image.policy.openshift.io/resolve-names: '*'            
+          annotations:
+            alpha.image.policy.openshift.io/resolve-names: '*'            
         spec:
           initContainers:
             - name: init-database
@@ -114,13 +108,26 @@
               - "-c"
               - |
                 until nc -z -v -w5 mysql 3306 &> /dev/null; do echo waiting for mysql; sleep 10; done;	
-                /usr/libexec/s2i/initdb        
+                /usr/libexec/s2i/initdb
+              volumeMounts:
+                - name: moodle-config
+                  mountPath: /opt/moodle_config    
+                - name: moodle-data
+                  mountPath: /opt/moodle_data
+                  subPath: moodle-data
+          volumes:
+            - configMap:
+                name: moodle-config
+              name: moodle-config
+            - name: moodle-data
+              persistentVolumeClaim:
+                claimName: moodle-data
           containers:
             - env:
                 - name: WAITFOR_HOST
                   value: mysql
                 - name: WAITFOR_PORT
-                  value: '3006'
+                  value: '3306'
                 - name: TIMEZONE
                   value: America/Montevideo
               image: "moodle:latest"

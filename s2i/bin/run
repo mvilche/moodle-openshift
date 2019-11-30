@@ -33,7 +33,9 @@ fi
 
 if [ -f "/opt/moodle_config/config.php" ]; then
 
-cat /opt/moodle_config/config.php > /var/www/html/config.php 
+cat /opt/moodle_config/config.php > /var/www/html/config.php
+
+	echo "---->  ARCHIVO DE CONFIGURACION SETEADO CORRECTAMENTE.."
 
 else
 
