@@ -35,13 +35,23 @@ if [ -f "/opt/moodle_config/config.php" ]; then
 
 cat /opt/moodle_config/config.php > /var/www/html/config.php
 
-	echo "---->  ARCHIVO DE CONFIGURACION SETEADO CORRECTAMENTE.."
+	echo "---->  ARCHIVO DE CONFIGURACION config.php SETEADO CORRECTAMENTE.."
 
 else
 
 	echo "---->  NO SE ENCONTRO config.php SALIENDO.."
 
 exit 1
+
+fi
+
+
+
+if [ -f "/opt/moodle_config/php.ini" ]; then
+
+cat /opt/moodle_config/php.ini > /etc/opt/remi/php72/php.ini
+
+	echo "---->  ARCHIVO DE CONFIGURACION php.ini SETEADO CORRECTAMENTE.."
 
 fi
 

@@ -1,4 +1,4 @@
-# Moodle Openshift Images 
+# Moodle 3.8 Openshift Images 
 [![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
 
 
