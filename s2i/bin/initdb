@@ -23,7 +23,7 @@ if [ ! -d "/opt/moodle_data/dbinit" ]; then
 
 php /var/www/html/admin/cli/install_database.php --agree-license \
 --non-interactive --fullname=openshift --shortname=openshift \
---adminuser=admin --adminpass=admin --adminemail=admin@admin.com
+--adminuser=admin --adminpass=admin --adminemail=admin@admin.com --lang=es
 
 mkdir -p /opt/moodle_data/dbinit
 
