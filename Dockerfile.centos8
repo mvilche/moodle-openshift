@@ -3,7 +3,7 @@ FROM centos:8
 ENV PHP_VERSION=php72 \
 EPEL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
 REMI=https://rpms.remirepo.net/enterprise/remi-release-8.rpm \
-MOODLE_REPO=https://github.com/mvilche/moodle.git\
+MOODLE_REPO=https://github.com/mvilche/moodle.git \
 MOODLE_VERSION=MOODLE_38_STABLE \
 LANG=es_ES.UTF-8 \
 LANGUAGE=es_ES.UTF-8 \
